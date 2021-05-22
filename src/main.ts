@@ -12,7 +12,7 @@ const createWindow = (): void => {
 	console.log("Is dev mode: ", isDev);
 	win
 		.loadURL(
-			!isDev ? "http://localhost:9000" : `file://${app.getAppPath()}/index.html`
+			isDev ? "http://localhost:9000" : `file://${app.getAppPath()}/index.html`
 		)
 		.then(() => win.webContents.openDevTools());
 };
