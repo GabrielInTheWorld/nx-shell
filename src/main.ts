@@ -24,9 +24,7 @@ const createWindow = (): void => {
 	});
 
 	win
-		.loadURL(
-			isDev ? "http://localhost:9000" : `file://${app.getAppPath()}/index.html`
-		)
+		.loadURL(isDev ? "http://localhost:9000" : `file://${__dirname}/index.html`)
 		.then(() => {
 			if (isDev) {
 				win.webContents.openDevTools();

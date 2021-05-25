@@ -1,0 +1,37 @@
+{
+	"productName": "react-electron-app",
+	"directories": {
+		"output": "release/"
+	},
+	"files": [
+		"**/*",
+		"!**/*.ts",
+		"!.github",
+		"!.vscode",
+		"!.code-workspace",
+		"!*.md",
+		"!package.json",
+		"!package-lock.json",
+		"!src/",
+		"!hooks/",
+		"!tsconfig*.json",
+		"!tslint.json",
+		"!.eslintrc.json",
+		"!*.map"
+	],
+	"win": {
+		"icon": "src/assets/icons/favicon.png",
+		"target": ["nsis", "portable"]
+	},
+	"portable": {
+		"splashImage": "src/assets/icons/electron.bmp"
+	},
+	"mac": {
+		"icon": "src/assets/icons/favicon.png",
+		"target": ["dmg"]
+	},
+	"linux": {
+		"icon": "src/assets/icons/favicon.png",
+		"target": ["AppImage"]
+	}
+}
