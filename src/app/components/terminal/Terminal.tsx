@@ -2,6 +2,8 @@ import React from 'react';
 import * as XTerm from 'xterm';
 import 'xterm/css/xterm.css';
 
+import { FitAddon } from 'xterm-addon-fit';
+
 import FontFaceLoader from '../../utils/font-face-loader';
 import Colors from '../../utils/colors';
 import './Terminal.scss';
@@ -9,11 +11,18 @@ import './Terminal.scss';
 /**
  * Floating point number that represents the width of every character written in terminals in pixel.
  */
-const CHARACTER_WIDTH = 9.6;
+const CHARACTER_WIDTH = 9;
 /**
  * An integer that represents the height of every row in terminals in pixel.
  */
-const ROW_HEIGHT = 20;
+const ROW_HEIGHT = 19;
+
+const sleep = (ms: number) => {
+  const startTime = new Date().getTime();
+  while (new Date().getTime() < startTime + ms) {
+    // sleep!
+  }
+};
 
 interface IProps {
   onEnter?: (pid: number, buffer: string, directory: string) => void;
@@ -28,6 +37,7 @@ interface IState {
 
 export default class Terminal extends React.Component<IProps, IState> {
   private terminal: XTerm.Terminal = new XTerm.Terminal(this.getOptions());
+  private fitAddon = new FitAddon();
 
   private onEnter = (_pid: number, _buffer: string, _directory: string) => {};
   private onTab = (_pid: number, _lastWord: string, _buffer: string) => {};
@@ -39,7 +49,12 @@ export default class Terminal extends React.Component<IProps, IState> {
 
   private directory = __dirname;
 
-  private parentElementRef = React.createRef<HTMLDivElement>();
+  private parentElement: HTMLDivElement | null = null;
+  // private parentElementRef = React.createRef<HTMLDivElement>();
+  private parentElementRef = (element: HTMLDivElement) => {
+    console.log('element:', element);
+    this.parentElement = element;
+  };
 
   public constructor(props: IProps) {
     super(props);
@@ -48,14 +63,28 @@ export default class Terminal extends React.Component<IProps, IState> {
     };
   }
 
-  public componentDidMount() {
+  public async componentDidMount() {
+    this.terminal.loadAddon(this.fitAddon);
     this.terminal.loadAddon(new FontFaceLoader());
-    (this.terminal as any).loadWebfontAndOpen(this.parentElementRef.current);
+    console.log('parentElement', this.parentElement);
+    // this.terminal.open(this.parentElement as HTMLElement);
+    // this.fitAddon.fit();
+    await (this.terminal as any).loadWebfontAndOpen(this.parentElement);
+    console.log('core', (this.terminal as any)._core);
+    // .finally(() =>
+    //   console.log('dimensions:', this.fitAddon.proposeDimensions(), this.fitAddon.fit(), this.makeReady())
+    // );
+    // while (!this.fitAddon.proposeDimensions()) {
+    //   console.log('dimensions:', this.fitAddon.proposeDimensions());
+    //   sleep(100);
+    //   this.fitAddon.fit();
+    // }
     this.terminal.onKey(event => this.onKeyEvent(event.key, event.domEvent)); // = (event: {key: string, domEvent: KeyboardEvent}) => this.onKeyEvent(event.key, event.domEvent)
     this.terminal.onData(data => this.onData(data));
     window.onresize = () => {
-      const { cols, rows } = this.getDimensions();
-      this.terminal.resize(cols, rows);
+      this.fitAddon.fit();
+      // const { cols, rows } = this.getDimensions();
+      // this.terminal.resize(cols, rows);
     };
     this.write(`Terminal: ${this.props.pid}`, Colors.FgYellow);
     this.writeEmptyLine();
@@ -93,6 +122,7 @@ export default class Terminal extends React.Component<IProps, IState> {
   public render() {
     const { pid } = this.props;
     const { visible } = this.state;
+    // this.fitAddon.fit();
     return (
       <div
         className="terminal"
@@ -101,6 +131,22 @@ export default class Terminal extends React.Component<IProps, IState> {
         style={{ display: visible ? 'block' : 'none' }}
       ></div>
     );
+  }
+
+  private makeReady(): void {
+    // console.log('dimensions:', this.fitAddon.proposeDimensions());
+    // this.fitAddon.fit();
+    this.terminal.onKey(event => this.onKeyEvent(event.key, event.domEvent)); // = (event: {key: string, domEvent: KeyboardEvent}) => this.onKeyEvent(event.key, event.domEvent)
+    this.terminal.onData(data => this.onData(data));
+    window.onresize = () => {
+      this.fitAddon.fit();
+      // const { cols, rows } = this.getDimensions();
+      // this.terminal.resize(cols, rows);
+    };
+    this.write(`Terminal: ${this.props.pid}`, Colors.FgYellow);
+    this.writeEmptyLine();
+    this.init();
+    this.onReady(this.props.pid, this);
   }
 
   private init(): void {
@@ -206,7 +252,7 @@ export default class Terminal extends React.Component<IProps, IState> {
   private getDimensions(): { cols: number; rows: number } {
     console.log('getDimensions', window.innerWidth, window.innerHeight);
     const cols = Math.floor((window.innerWidth - 12) / CHARACTER_WIDTH);
-    const rows = Math.floor((window.innerHeight - 64) / ROW_HEIGHT);
+    const rows = Math.floor((window.innerHeight - 46) / ROW_HEIGHT);
     console.log('getDimension:cols-rows', cols, rows);
     return { cols, rows };
   }

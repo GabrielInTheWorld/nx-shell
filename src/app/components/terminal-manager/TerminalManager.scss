@@ -1,6 +1,12 @@
 .terminal-manager {
   color: white;
   font-size: 14px;
+  height: 100%;
+
+  &--container {
+    height: calc(100% - 46px);
+  }
+
   &--header {
     display: flex;
     flex-direction: row;
